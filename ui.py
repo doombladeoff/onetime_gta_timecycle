@@ -68,19 +68,20 @@ class XMLModifierUI:
                                        height=20,
                                        border_width=2, 
                                        border_color="gray",
-                                       text_color="white")
+                                       text_color="white",
+                                       state="disabled")
             checkbox.pack(anchor='w')
             return checkbox
 
         for name in name_to_filename.keys():
             var = ctk.BooleanVar()
             if name in ["RAIN", "THUNDER"]:
-                create_checkbox(self.rain_thunder_frame, name, var)
+                checkbox = create_checkbox(self.rain_thunder_frame, name, var)
             elif name in ["SNOWLIGHT", "XMAS", "HALLOWEEN"]:
-                create_checkbox(self.snowlight_xmas_halloween_frame, name, var)
+                checkbox = create_checkbox(self.snowlight_xmas_halloween_frame, name, var)
             else:
-                create_checkbox(self.regular_frame, name, var)
-            self.checkboxes[name] = var
+                checkbox = create_checkbox(self.regular_frame, name, var)
+            self.checkboxes[name] = checkbox
 
     def create_save_button(self):
         self.save_button = ctk.CTkButton(self.root, text="Create New Timecycle", command=self.on_checkbox_click, state="disabled")
@@ -93,6 +94,9 @@ class XMLModifierUI:
             self.save_button.configure(state="normal")
             self.selected_file_path = file_path
 
+            for checkbox in self.checkboxes.values():
+                checkbox.configure(state="normal")
+
     def on_checkbox_click(self):
         selected_names = [name for name, var in self.checkboxes.items() if var.get()]
         if selected_names:
@@ -100,8 +104,11 @@ class XMLModifierUI:
                 output_dir = filedialog.askdirectory(title="Select Folder for Saving Files")
                 if output_dir:
                     modify_xml_attribute(selected_names, self.selected_file_path, output_dir)
-                else:
-                    messagebox.showerror("Error", "No folder selected for saving files!")
+                    for var in self.checkboxes.values():
+                        var.deselect()
+                    self.save_button.configure(state="disabled")
+                    self.file_name_label.configure(text="No file selected")
+                    self.selected_file_path = None
             else:
                 messagebox.showerror("Error", "No file selected!")
         else:

@@ -7,24 +7,30 @@ def modify_xml_attribute(selected_names, file_path, output_dir):
     try:
         os.makedirs(output_dir, exist_ok=True)
 
+        # Load and parse the XML file
+        tree = ET.parse(file_path)
+        root_element = tree.getroot()
+
+        # Find the <cycle> element with regions="2" and get its name attribute
+        original_name = None
+        for cycle in root_element.findall(".//cycle[@regions='2']"):
+            original_name = cycle.get("name")
+            break
+        
+        if not original_name:
+            messagebox.showerror("Error", "Element <cycle> with attribute regions='2' not found!")
+            return
+
         created_files = []
 
+        # Iterate over selected checkbox names
         for name in selected_names:
-            # Load and parse the XML file
-            tree = ET.parse(file_path)
-            root_element = tree.getroot()
-
-            # Find <cycle> element with name="EXTRASUNNY" and regions="2"
-            for cycle in root_element.findall(".//cycle[@name='EXTRASUNNY'][@regions='2']"):
-                # Change the value of the name attribute
+            # Change the value of the name attribute
+            for cycle in root_element.findall(f".//cycle[@name='{original_name}'][@regions='2']"):
                 cycle.set("name", name)
-                break
-            else:
-                messagebox.showerror("Error", f"<cycle> element with attributes name='EXTRASUNNY' and regions='2' not found in file {name}.xml!")
-                continue
 
             # Form the name of the new file based on the selected value
-            file_name = f"{name_to_filename[name]}.xml"  # Ensure filename format is correct
+            file_name = f"{name_to_filename[name]}.xml"
             save_path = os.path.join(output_dir, file_name)
 
             if os.path.isfile(save_path):
